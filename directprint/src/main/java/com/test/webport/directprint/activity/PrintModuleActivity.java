@@ -1,9 +1,11 @@
 package com.test.webport.directprint.activity;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.print.PrintAttributes;
@@ -24,11 +26,14 @@ import com.test.webport.directprint.module.DirectPrintModule;
 
 public class PrintModuleActivity extends AppCompatActivity {
     private RootBroadcastReceiver receiver;
+    private ProgressDialog dialog;
     private WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().hide();
         webView = new WebView(this);
         WebSettings webSetting = webView.getSettings();
         webSetting.setJavaScriptEnabled(true);
@@ -38,7 +43,14 @@ public class PrintModuleActivity extends AppCompatActivity {
                 "text/html",
                 "UTF-8",
                 null);
-        webView.setWebViewClient(new WebViewClient(){
+        webView.setWebViewClient(new WebViewClient() {
+
+            @Override public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                dialog = ProgressDialog.show(PrintModuleActivity.this, "Please Wait...",
+                        "Loading...");
+                dialog.setCancelable(true);
+                super.onPageStarted(view, url, favicon);
+            }
 
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
@@ -46,10 +58,12 @@ public class PrintModuleActivity extends AppCompatActivity {
                 result.putExtra(PrintModuleReceiver.PRINT_RESULT_ACTION,
                         (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ? error.getDescription() : "Html syntax error");
                 sendBroadcast(result);
+                dialog.dismiss();
             }
 
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                dialog.dismiss();
                 doPrint();
             }
         });
