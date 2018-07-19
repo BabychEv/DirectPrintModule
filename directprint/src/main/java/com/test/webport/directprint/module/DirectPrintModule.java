@@ -53,6 +53,7 @@ public class DirectPrintModule extends ReactContextBaseJavaModule {
     }
 
     public void close() {
+        sendFeedBack("");
         getReactApplicationContext().unregisterReceiver(receiver);
     }
 }
