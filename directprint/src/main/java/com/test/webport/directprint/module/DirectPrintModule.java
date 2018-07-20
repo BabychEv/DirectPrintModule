@@ -24,7 +24,6 @@ public class DirectPrintModule extends ReactContextBaseJavaModule {
         receiver = new PrintModuleReceiver(this);
         IntentFilter filter = new IntentFilter();
         filter.addAction(PrintModuleReceiver.PRINT_RESULT_ACTION);
-        filter.addAction(PrintModuleReceiver.CLOSE_ACTION);
         getReactApplicationContext().registerReceiver(receiver, filter);
     }
 
@@ -52,9 +51,5 @@ public class DirectPrintModule extends ReactContextBaseJavaModule {
         getReactApplicationContext()
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(PRINT_RESULT_EVENT, params);
-    }
-
-    public void close() {
-        getReactApplicationContext().unregisterReceiver(receiver);
     }
 }

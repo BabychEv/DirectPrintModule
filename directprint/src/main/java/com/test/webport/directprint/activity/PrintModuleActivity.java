@@ -96,7 +96,6 @@ public class PrintModuleActivity extends AppCompatActivity {
 
     @Override protected void onDestroy() {
         dialog.dismiss();
-        sendBroadcast(new Intent(PrintModuleReceiver.CLOSE_ACTION));
         unregisterReceiver(receiver);
         super.onDestroy();
     }
