@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.print.PrintAttributes;
-import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -19,7 +18,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.test.webport.directprint.BuildConfig;
+import com.test.webport.directprint.PrintDocumentAdapterWrapper;
 import com.test.webport.directprint.broadcast.PrintModuleReceiver;
 import com.test.webport.directprint.broadcast.RootBroadcastReceiver;
 import com.test.webport.directprint.module.DirectPrintModule;
@@ -43,6 +42,11 @@ public class PrintModuleActivity extends AppCompatActivity {
                 "text/html",
                 "UTF-8",
                 null);
+        addWebViewClient();
+        initReceiver();
+    }
+
+    private void addWebViewClient() {
         webView.setWebViewClient(new WebViewClient() {
 
             @Override public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -58,16 +62,29 @@ public class PrintModuleActivity extends AppCompatActivity {
                 result.putExtra(PrintModuleReceiver.PRINT_RESULT_ACTION,
                         (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ? error.getDescription() : "Html syntax error");
                 sendBroadcast(result);
-                dialog.dismiss();
+                if (dialog != null && dialog.isShowing())
+                    dialog.dismiss();
             }
 
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                dialog.dismiss();
                 doPrint();
             }
         });
-        initReceiver();
+    }
+
+    private void doPrint() {
+        if (!isFinishing()) {
+            PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
+            String jobName = "Start print document - " + System.currentTimeMillis();
+            PrintDocumentAdapterWrapper printAdapter = new PrintDocumentAdapterWrapper(this, webView.createPrintDocumentAdapter(jobName));
+            PrintAttributes attributes = new PrintAttributes.Builder()
+                    .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                    .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                    .build();
+            if (printManager != null)
+                printManager.print(jobName, printAdapter, attributes);
+        }
     }
 
     private void initReceiver() {
@@ -77,19 +94,8 @@ public class PrintModuleActivity extends AppCompatActivity {
         registerReceiver(receiver, filter);
     }
 
-    private void doPrint() {
-        String jobName = "Start print" + BuildConfig.VERSION_NAME + "document";
-        PrintManager printManager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
-        PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
-        PrintAttributes attributes = new PrintAttributes.Builder()
-                .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
-                .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                .build();
-        if (printManager != null)
-            printManager.print(jobName, printAdapter, attributes);
-    }
-
     @Override protected void onDestroy() {
+        dialog.dismiss();
         sendBroadcast(new Intent(PrintModuleReceiver.CLOSE_ACTION));
         unregisterReceiver(receiver);
         super.onDestroy();

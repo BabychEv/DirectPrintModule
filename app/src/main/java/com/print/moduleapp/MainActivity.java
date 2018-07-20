@@ -8,19 +8,31 @@ import android.view.View;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.test.webport.directprint.module.DirectPrintModule;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity {
+
+    private DirectPrintModule module;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        module = new DirectPrintModule(new ReactApplicationContext(MainActivity.this));
+        module.startPrint(text);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new DirectPrintModule(new ReactApplicationContext(MainActivity.this)).startPrint(text);
             }
         });
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override public void run() {
+                module.onBackPressed();
+            }
+        }, 10000);
     }
 
     private String text = "<html class=\"client-nojs\" lang=\"en\" dir=\"ltr\">\n" +

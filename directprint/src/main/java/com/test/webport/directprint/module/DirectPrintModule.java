@@ -36,6 +36,9 @@ public class DirectPrintModule extends ReactContextBaseJavaModule {
     public void startPrint(String htmlText){
         Intent intent = new Intent(getReactApplicationContext(), PrintModuleActivity.class);
         intent.putExtra(BILL_TEXT_KEY, htmlText);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         getReactApplicationContext().startActivity(intent);
     }
 
@@ -53,7 +56,6 @@ public class DirectPrintModule extends ReactContextBaseJavaModule {
     }
 
     public void close() {
-        sendFeedBack("");
         getReactApplicationContext().unregisterReceiver(receiver);
     }
 }
