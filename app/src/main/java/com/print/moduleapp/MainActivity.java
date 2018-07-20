@@ -21,10 +21,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         module = new DirectPrintModule(new ReactApplicationContext(MainActivity.this));
-        module.startPrint(text);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                module.startPrint(text);
             }
         });
         Timer timer = new Timer();
