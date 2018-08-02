@@ -1,1 +1,1 @@
-include ':app', ':directprint'
+include ':app', ':directprint', ':webprintmodule'

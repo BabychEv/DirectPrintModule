@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.test.webport.directprint.module.DirectPrintModule;
+import com.webprint.module.module.WebPrintModule;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,6 +15,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
 
     private DirectPrintModule module;
+    private WebPrintModule webPrintModule;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,12 +29,21 @@ public class MainActivity extends AppCompatActivity {
                 module.startPrint(text);
             }
         });
-        Timer timer = new Timer();
+
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_bluetooth_print);
+        webPrintModule = new WebPrintModule(new ReactApplicationContext(MainActivity.this));
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                webPrintModule.startPrintModule();
+            }
+        });
+        /*Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override public void run() {
                 module.onBackPressed();
             }
-        }, 10000);
+        }, 10000);*/
     }
 
     private String text = "<html class=\"client-nojs\" lang=\"en\" dir=\"ltr\">\n" +
