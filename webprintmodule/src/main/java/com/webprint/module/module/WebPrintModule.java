@@ -32,6 +32,7 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
         return "WebPrint";
     }
 
+    @ReactMethod
     public void startPrintModule() {
         Intent intent = new Intent(getReactApplicationContext(), PrintActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
