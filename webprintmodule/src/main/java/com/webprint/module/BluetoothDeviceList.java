@@ -2,6 +2,7 @@ package com.webprint.module;
 
 import java.util.Set;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -28,13 +30,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.tbruyelle.rxpermissions2.RxPermissions;
+
 /**
  * This Activity appears as a dialog. It lists any paired devices and
  * devices detected in the area after discovery. When a device is chosen
  * by the user, the MAC address of the device is sent back to the parent
  * Activity in the result Intent.
  */
-public class BluetoothDeviceList extends Activity {
+public class BluetoothDeviceList extends FragmentActivity {
     private static final String TAG = "DeviceListActivity";
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
     public static String EXTRA_RE_PAIR = "re_pair";
@@ -60,14 +64,21 @@ public class BluetoothDeviceList extends Activity {
         initView();
     }
 
-    private void initView(){
-    	// Initialize the button to perform device discovery
+    private void initView() {
+        // Initialize the button to perform device discovery
         scanButton = (Button) findViewById(R.id.button_scan);
-        scanButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                doDiscovery();
-                v.setEnabled(false);
-            }
+        scanButton.setOnClickListener(v -> {
+            new RxPermissions(BluetoothDeviceList.this)
+                    .request(Manifest.permission.BLUETOOTH,
+                            Manifest.permission.BLUETOOTH_ADMIN,
+                            Manifest.permission.ACCESS_COARSE_LOCATION)
+                    .subscribe(granted -> {
+                        if (granted) {
+                            doDiscovery();
+                            v.setEnabled(false);
+                        } else {
+                        }
+                    });
         });
 
         mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_item);
@@ -86,33 +97,33 @@ public class BluetoothDeviceList extends Activity {
         // If there are paired devices, add each one to the ArrayAdapter
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-            	mPairedDevicesArrayAdapter.add(device.getName()
-            			+ " ( " + getResources().getText(R.string.has_paired) +" )"
-            			+ "\n" + device.getAddress());
+                mPairedDevicesArrayAdapter.add(device.getName()
+                        + " ( " + getResources().getText(R.string.has_paired) + " )"
+                        + "\n" + device.getAddress());
             }
         }
     }
 
     @Override
-	protected void onStop() {
-		// Make sure we're not doing discovery anymore
+    protected void onStop() {
+        // Make sure we're not doing discovery anymore
         if (mBtAdapter != null && mBtAdapter.isDiscovering()) {
             mBtAdapter.cancelDiscovery();
         }
-		// Unregister broadcast listeners
+        // Unregister broadcast listeners
         this.unregisterReceiver(mReceiver);
         super.onStop();
-	}
+    }
 
-	@Override
-	protected void onResume() {
-		// Register for broadcasts when a device is discovered and discovery has finished
+    @Override
+    protected void onResume() {
+        // Register for broadcasts when a device is discovered and discovery has finished
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         registerReceiver(mReceiver, filter);
         super.onResume();
-	}
+    }
 
     /**
      * Start device discover with the BluetoothAdapter
@@ -134,10 +145,9 @@ public class BluetoothDeviceList extends Activity {
         mBtAdapter.startDiscovery();
     }
 
-    private void returnToPreviousActivity(String address, boolean re_pair)
-    {
-    	// Cancel discovery because it's costly and we're about to connect
-    	if (mBtAdapter.isDiscovering()) {
+    private void returnToPreviousActivity(String address, boolean re_pair) {
+        // Cancel discovery because it's costly and we're about to connect
+        if (mBtAdapter.isDiscovering()) {
             mBtAdapter.cancelDiscovery();
         }
 
@@ -154,56 +164,54 @@ public class BluetoothDeviceList extends Activity {
     // The on-click listener for all devices in the ListViews
     private OnItemClickListener mDeviceClickListener = new OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
-        	// Get the device MAC address, which is the last 17 chars in the View
+            // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             String address = info.substring(info.length() - 17);
-        	returnToPreviousActivity(address, false);
+            returnToPreviousActivity(address, false);
         }
     };
 
     private OnItemLongClickListener mDeviceLongClickListener = new OnItemLongClickListener() {
-		@Override
-		public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-				int arg2, long arg3) {
-			//if return true, don't call method onCreateContextMenu
-			return false;
-		}
-	};
-
-	private OnCreateContextMenuListener mCreateContextMenuListener = new OnCreateContextMenuListener(){
-		@Override
-		public void onCreateContextMenu(ContextMenu menu, View view,ContextMenuInfo arg2) {
-			menu.setHeaderTitle(R.string.select_options);
-
-			String info = ((TextView)(((AdapterContextMenuInfo)arg2).targetView)).getText().toString();
-			//if(((AdapterContextMenuInfo)arg2).position < pairedDeviceNum)
-			if (info.contains(" ( " + getResources().getText(R.string.has_paired) +" )")) {
-				menu.add(0, 0, 0, R.string.rePaire_connect).setOnMenuItemClickListener(mOnMenuItemClickListener);
-				menu.add(0, 1, 1, R.string.connect_paired).setOnMenuItemClickListener(mOnMenuItemClickListener);
-			}
-			else
-			{
-				menu.add(0, 2, 2, R.string.paire_connect).setOnMenuItemClickListener(mOnMenuItemClickListener);
-			}
-		}
+        @Override
+        public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                       int arg2, long arg3) {
+            //if return true, don't call method onCreateContextMenu
+            return false;
+        }
     };
 
-	private final OnMenuItemClickListener mOnMenuItemClickListener = new OnMenuItemClickListener(){
-		public boolean onMenuItemClick(MenuItem item) {
-			String info = ((TextView)((AdapterContextMenuInfo)item.getMenuInfo()).targetView).getText().toString();
-			String address = info.substring(info.length() - 17);
-			switch (item.getItemId()) {
-			case 0://repair and connect
-				returnToPreviousActivity(address, true);
-				break;
-			case 1://connect
-			case 2://pair and connect
-				returnToPreviousActivity(address, false);
-				break;
-			}
-			return false;
-		}
-	};
+    private OnCreateContextMenuListener mCreateContextMenuListener = new OnCreateContextMenuListener() {
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo arg2) {
+            menu.setHeaderTitle(R.string.select_options);
+
+            String info = ((TextView) (((AdapterContextMenuInfo) arg2).targetView)).getText().toString();
+            //if(((AdapterContextMenuInfo)arg2).position < pairedDeviceNum)
+            if (info.contains(" ( " + getResources().getText(R.string.has_paired) + " )")) {
+                menu.add(0, 0, 0, R.string.rePaire_connect).setOnMenuItemClickListener(mOnMenuItemClickListener);
+                menu.add(0, 1, 1, R.string.connect_paired).setOnMenuItemClickListener(mOnMenuItemClickListener);
+            } else {
+                menu.add(0, 2, 2, R.string.paire_connect).setOnMenuItemClickListener(mOnMenuItemClickListener);
+            }
+        }
+    };
+
+    private final OnMenuItemClickListener mOnMenuItemClickListener = new OnMenuItemClickListener() {
+        public boolean onMenuItemClick(MenuItem item) {
+            String info = ((TextView) ((AdapterContextMenuInfo) item.getMenuInfo()).targetView).getText().toString();
+            String address = info.substring(info.length() - 17);
+            switch (item.getItemId()) {
+                case 0://repair and connect
+                    returnToPreviousActivity(address, true);
+                    break;
+                case 1://connect
+                case 2://pair and connect
+                    returnToPreviousActivity(address, false);
+                    break;
+            }
+            return false;
+        }
+    };
 
     // The BroadcastReceiver that listens for discovered devices and
     // changes the title when discovery is finished
@@ -218,13 +226,13 @@ public class BluetoothDeviceList extends Activity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
                 String itemName = device.getName()
-            			+ " ( " + getResources().getText(device.getBondState() == BluetoothDevice.BOND_BONDED ? R.string.has_paired : R.string.not_paired) +" )"
-            			+ "\n" + device.getAddress();
+                        + " ( " + getResources().getText(device.getBondState() == BluetoothDevice.BOND_BONDED ? R.string.has_paired : R.string.not_paired) + " )"
+                        + "\n" + device.getAddress();
 
                 mPairedDevicesArrayAdapter.remove(itemName);
-            	mPairedDevicesArrayAdapter.add(itemName);
-            	pairedListView.setEnabled(true);
-            // When discovery is finished, change the Activity title
+                mPairedDevicesArrayAdapter.add(itemName);
+                pairedListView.setEnabled(true);
+                // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 setProgressBarIndeterminateVisibility(false);
                 setTitle(R.string.select_device);
