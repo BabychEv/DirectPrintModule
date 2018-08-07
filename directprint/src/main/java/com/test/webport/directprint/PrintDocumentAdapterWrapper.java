@@ -29,6 +29,6 @@ public class PrintDocumentAdapterWrapper extends PrintDocumentAdapter {
 
     public void onFinish(){
         delegate.onFinish();
-        activity.finish();
+        activity.clearPrintTask();
     }
 }
