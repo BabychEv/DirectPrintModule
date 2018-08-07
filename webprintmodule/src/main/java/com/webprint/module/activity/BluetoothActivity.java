@@ -146,6 +146,7 @@ public class BluetoothActivity extends FragmentActivity {
             mBluetoothAdapter.cancelDiscovery();
         }
         mBluetoothDevicesAdapter.clearData();
+        mTextViewStatus.setText("");
         mBluetoothAdapter.startDiscovery();
     }
 
@@ -239,6 +240,7 @@ public class BluetoothActivity extends FragmentActivity {
     private void disconnectPrinter() {
         mPrinter.closeConnection();
         mScanButton.setText(R.string.scan_new_devices);
+        mTextViewStatus.setText("");
     }
 
     @SuppressLint("HandlerLeak")
