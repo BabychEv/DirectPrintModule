@@ -130,4 +130,5 @@
     <string name="printer_connection_failed">Connection failed</string>
     <string name="printer_connection_success">Connected to printer</string>
     <string name="printer_disconnect">Disconnect</string>
+    <string name="printer_not_ready">Printer is not ready or disconnected</string>
 </resources>

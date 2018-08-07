@@ -149,6 +149,14 @@ public class BluetoothActivity extends FragmentActivity {
         mBluetoothAdapter.startDiscovery();
     }
 
+    public void print(String text) {
+        if(mPrinter != null && mPrinterConnected) {
+            mPrinter.printText(text);
+        } else {
+            Toast.makeText(BluetoothActivity.this, R.string.printer_not_ready, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     protected void onResume() {
         IntentFilter filter = new IntentFilter();

@@ -46,6 +46,13 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
         getReactApplicationContext().sendBroadcast(new Intent(RootBroadcastReceiver.CLOSE_ACTIVITY_ACTION));
     }
 
+    @ReactMethod
+    public void print(String text) {
+        Intent intent = new Intent(RootBroadcastReceiver.PRINT_TEXT_ACTION);
+        intent.putExtra(RootBroadcastReceiver.EXTRA_TEXT_PRINT, text);
+        getReactApplicationContext().sendBroadcast(intent);
+    }
+
     public void sendFeedBack(String feedback) {
         WritableMap params = Arguments.createMap();
         params.putString(PRINT_RESULT_KEY, feedback);
