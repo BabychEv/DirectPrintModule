@@ -90,13 +90,16 @@ public class PrintActivity extends FragmentActivity {
                         }
                         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
                         if (pairedDevices.size() > 0) {
-                            BluetoothDevice[] devices = (BluetoothDevice[]) pairedDevices.toArray();
-                            for (BluetoothDevice device : devices) {
-                                if (mAddress.equals(device.getAddress())) {
+                            for (BluetoothDevice device : pairedDevices) {
+                                if(device.getBondState() == BluetoothDevice.BOND_BONDED
+                                        && mAddress.equals(device.getAddress())){
                                     mDevice = device;
                                     openPrinter();
                                     break;
                                 }
+                            }
+                            if(mDevice == null) {
+                                Toast.makeText(PrintActivity.this, R.string.no_devices_found, Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(PrintActivity.this, R.string.no_devices_found, Toast.LENGTH_SHORT).show();
@@ -183,7 +186,11 @@ public class PrintActivity extends FragmentActivity {
         }
         disconnectPrinter();
         if(mCloseReceiver != null) {
-            unregisterReceiver(mCloseReceiver);
+            try {
+                unregisterReceiver(mCloseReceiver);
+            } catch (IllegalArgumentException e) {
+                //ignore
+            }
         }
         super.onDestroy();
     }
