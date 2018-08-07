@@ -16,15 +16,14 @@ import com.webprint.module.broadcast.RootBroadcastReceiver;
 
 public class WebPrintModule extends ReactContextBaseJavaModule {
 
-    private static final String PRINT_RESULT_KEY = "com.webprint.module.module.WebPrintModule.PRINT_RESULT_KEY";
-    private static final String PRINT_RESULT_EVENT = "com.webprint.module.module.WebPrintModule.PRINT_RESULT_EVENT";
     private final PrintBluetoothModuleReceiver receiver;
 
     public WebPrintModule(ReactApplicationContext reactContext) {
         super(reactContext);
         receiver = new PrintBluetoothModuleReceiver(this);
         IntentFilter filter = new IntentFilter();
-        filter.addAction(PrintBluetoothModuleReceiver.PRINT_RESULT_ACTION);
+        filter.addAction(PrintBluetoothModuleReceiver.ACTION_DEVICES_PAIRED);
+        filter.addAction(PrintBluetoothModuleReceiver.ACTION_SEND_PRINT_TEXT);
         getReactApplicationContext().registerReceiver(receiver, filter);
     }
 
@@ -53,10 +52,10 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * Open activity which try to connect to printer and print @text
+     * Opens activity which try to connect to printer and print #text
      */
     @ReactMethod
-    public void print(String text) {
+    public void startPrinting(String text) {
         Intent intent = new Intent(getReactApplicationContext(), PrintActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -64,11 +63,10 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
         getReactApplicationContext().startActivity(intent);
     }
 
-    public void sendFeedBack(String feedback) {
+    public void sendResult(String event) {
         WritableMap params = Arguments.createMap();
-        params.putString(PRINT_RESULT_KEY, feedback);
         getReactApplicationContext()
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(PRINT_RESULT_EVENT, params);
+                .emit(event, params);
     }
 }

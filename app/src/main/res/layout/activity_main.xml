@@ -19,10 +19,18 @@
         app:srcCompat="@android:drawable/ic_dialog_email" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_bluetooth_print"
+        android:id="@+id/fab_bluetooth_devices"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|left"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@android:drawable/ic_dialog_email" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_bluetooth_print"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_dialog_email" />
 

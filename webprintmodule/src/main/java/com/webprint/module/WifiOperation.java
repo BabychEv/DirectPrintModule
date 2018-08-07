@@ -77,6 +77,6 @@ public class WifiOperation implements IPrinterOpertion{
 		}
 		Intent intent = new Intent();
     	intent.setClass(mContext, IpAddressEdit.class);
-    	((Activity)mContext).startActivityForResult(intent, PrintActivity.CONNECT_DEVICE);
+    	//((Activity)mContext).startActivityForResult(intent, PrintActivity.CONNECT_DEVICE);
 	}
 }

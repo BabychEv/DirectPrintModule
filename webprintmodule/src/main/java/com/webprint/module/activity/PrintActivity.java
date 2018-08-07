@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,6 +19,7 @@ import com.android.print.sdk.PrinterConstants;
 import com.android.print.sdk.PrinterInstance;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.webprint.module.R;
+import com.webprint.module.broadcast.PrintBluetoothModuleReceiver;
 import com.webprint.module.broadcast.RootBroadcastReceiver;
 import com.webprint.module.utils.PrintSharedPreferences;
 import com.webprint.module.utils.Utils;
@@ -54,7 +56,7 @@ public class PrintActivity extends FragmentActivity {
         }
         mAddress = PrintSharedPreferences.getAddress(this, null);
         if (TextUtils.isEmpty(mAddress)) {
-            Toast.makeText(PrintActivity.this, R.string.no_devices_found, Toast.LENGTH_SHORT).show();
+            Toast.makeText(PrintActivity.this, R.string.not_paired_devices, Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -111,6 +113,7 @@ public class PrintActivity extends FragmentActivity {
             mPrinter.printText(text);
             mTextViewStatus.setText(R.string.printing);
             hideProgressBar();
+            sendBroadcast(new Intent(PrintBluetoothModuleReceiver.ACTION_SEND_PRINT_TEXT));
         } else {
             Toast.makeText(PrintActivity.this, R.string.printer_not_ready, Toast.LENGTH_SHORT).show();
         }
@@ -179,7 +182,9 @@ public class PrintActivity extends FragmentActivity {
             mDialog.dismiss();
         }
         disconnectPrinter();
-        unregisterReceiver(mCloseReceiver);
+        if(mCloseReceiver != null) {
+            unregisterReceiver(mCloseReceiver);
+        }
         super.onDestroy();
     }
 }

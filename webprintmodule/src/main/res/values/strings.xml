@@ -134,4 +134,5 @@
     <string name="bluetooth_not_ready">Bluetooth is not ready</string>
     <string name="not_printed_data">No exists print data</string>
     <string name="printing">Printing...</string>
+    <string name="not_paired_devices">Havn\'t paired devices</string>
 </resources>

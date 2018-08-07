@@ -29,6 +29,7 @@ import com.android.print.sdk.PrinterInstance;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.webprint.module.BluetoothDeviceList;
 import com.webprint.module.R;
+import com.webprint.module.broadcast.PrintBluetoothModuleReceiver;
 import com.webprint.module.broadcast.RootBroadcastReceiver;
 import com.webprint.module.utils.PrintSharedPreferences;
 import com.webprint.module.utils.Utils;
@@ -248,6 +249,7 @@ public class BluetoothActivity extends FragmentActivity {
                         String stateBonding = String.format(context.getString(R.string.device_bonding), mDevice.getName(), mDevice.getAddress());
                         mTextViewStatus.setText(stateBonding);
                         hideProgressBar();
+                        sendBroadcast(new Intent(PrintBluetoothModuleReceiver.ACTION_DEVICES_PAIRED));
                         break;
                     case BluetoothDevice.BOND_BONDED:
                         String stateBonded = String.format(context.getString(R.string.device_bonded), mDevice.getName(), mDevice.getAddress());

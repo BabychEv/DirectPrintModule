@@ -33,12 +33,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_bluetooth_print);
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_bluetooth_devices);
         webPrintModule = new WebPrintModule(new ReactApplicationContext(MainActivity.this));
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                webPrintModule.startPrintModule();
+                webPrintModule.startBluetoothPairing();
+            }
+        });
+
+        FloatingActionButton fab3 = (FloatingActionButton) findViewById(R.id.fab_bluetooth_print);
+        webPrintModule = new WebPrintModule(new ReactApplicationContext(MainActivity.this));
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                webPrintModule.startPrinting("HELLO WORLD");
             }
         });
     }
