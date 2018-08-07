@@ -9,9 +9,6 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.test.webport.directprint.module.DirectPrintModule;
 import com.webprint.module.module.WebPrintModule;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class MainActivity extends AppCompatActivity {
 
     private DirectPrintModule module;
@@ -27,12 +24,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 module.startPrint(text);
-                Timer timer = new Timer();
+               /* Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override public void run() {
                         module.onBackPressed();
                     }
-                }, 10000);
+                }, 10000);*/
             }
         });
 
