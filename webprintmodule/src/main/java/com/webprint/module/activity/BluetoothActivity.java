@@ -29,6 +29,7 @@ import com.android.print.sdk.PrinterInstance;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.webprint.module.BluetoothDeviceList;
 import com.webprint.module.R;
+import com.webprint.module.broadcast.RootBroadcastReceiver;
 import com.webprint.module.utils.Utils;
 
 import java.lang.reflect.Method;
@@ -47,12 +48,17 @@ public class BluetoothActivity extends FragmentActivity {
     private BluetoothDevice mDevice;
     private PrinterInstance mPrinter;
     private boolean mPrinterConnected;
+    private RootBroadcastReceiver mCloseReceiver;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth_print);
         setActionBar(null);
+        mCloseReceiver = new RootBroadcastReceiver(this);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(RootBroadcastReceiver.CLOSE_ACTIVITY_ACTION);
+        registerReceiver(mCloseReceiver, filter);
         initView();
         loadPairedDevices();
     }
@@ -164,6 +170,10 @@ public class BluetoothActivity extends FragmentActivity {
 
     @Override
     protected void onDestroy() {
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
+        unregisterReceiver(mCloseReceiver);
         super.onDestroy();
     }
 

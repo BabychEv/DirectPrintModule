@@ -126,7 +126,7 @@ public class PrintActivity extends Activity implements OnClickListener {
     }
 
     private void initReceiver() {
-        receiver = new RootBroadcastReceiver(this);
+        receiver = new RootBroadcastReceiver(null);
         IntentFilter filter = new IntentFilter();
         filter.addAction(RootBroadcastReceiver.CLOSE_ACTIVITY_ACTION);
         registerReceiver(receiver, filter);
