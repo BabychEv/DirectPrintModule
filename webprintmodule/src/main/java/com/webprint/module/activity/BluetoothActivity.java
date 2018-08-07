@@ -30,6 +30,7 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.webprint.module.BluetoothDeviceList;
 import com.webprint.module.R;
 import com.webprint.module.broadcast.RootBroadcastReceiver;
+import com.webprint.module.utils.PrintSharedPreferences;
 import com.webprint.module.utils.Utils;
 
 import java.lang.reflect.Method;
@@ -46,8 +47,6 @@ public class BluetoothActivity extends FragmentActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mDevice;
-    private PrinterInstance mPrinter;
-    private boolean mPrinterConnected;
     private RootBroadcastReceiver mCloseReceiver;
 
     @Override
@@ -69,27 +68,21 @@ public class BluetoothActivity extends FragmentActivity {
         mScanButton = findViewById(R.id.btn_scan);
         mDevicesRecyclerView = findViewById(R.id.recycler_view);
         mTextViewStatus = findViewById(R.id.text_view_status);
-        mScanButton.setOnClickListener(click -> {
-            if (mPrinterConnected) {
-                disconnectPrinter();
-            } else {
-                new RxPermissions(BluetoothActivity.this)
-                        .request(Manifest.permission.BLUETOOTH,
-                                Manifest.permission.BLUETOOTH_ADMIN,
-                                Manifest.permission.ACCESS_COARSE_LOCATION)
-                        .subscribe(granted -> {
-                            if (granted) {
-                                if (!mBluetoothAdapter.isEnabled()) {
-                                    mBluetoothAdapter.enable();
-                                }
-                                scanDevices();
-                            } else {
-                            }
-                        }, error -> {
+        mScanButton.setOnClickListener(click -> new RxPermissions(BluetoothActivity.this)
+                .request(Manifest.permission.BLUETOOTH,
+                        Manifest.permission.BLUETOOTH_ADMIN,
+                        Manifest.permission.ACCESS_COARSE_LOCATION)
+                .subscribe(granted -> {
+                    if (granted) {
+                        if (!mBluetoothAdapter.isEnabled()) {
+                            mBluetoothAdapter.enable();
+                        }
+                        scanDevices();
+                    } else {
+                    }
+                }, error -> {
 
-                        });
-            }
-        });
+                }));
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             // Device doesn't support Bluetooth
@@ -148,14 +141,6 @@ public class BluetoothActivity extends FragmentActivity {
         mBluetoothDevicesAdapter.clearData();
         mTextViewStatus.setText("");
         mBluetoothAdapter.startDiscovery();
-    }
-
-    public void print(String text) {
-        if(mPrinter != null && mPrinterConnected) {
-            mPrinter.printText(text);
-        } else {
-            Toast.makeText(BluetoothActivity.this, R.string.printer_not_ready, Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
@@ -230,48 +215,6 @@ public class BluetoothActivity extends FragmentActivity {
         return success;
     }
 
-    private void openPrinter() {
-        mPrinter = new PrinterInstance(this, mDevice, mPrinterHandler);
-        // default is gbk...
-        // mPrinter.setEncoding("gbk");
-        mPrinter.openConnection();
-    }
-
-    private void disconnectPrinter() {
-        mPrinter.closeConnection();
-        mScanButton.setText(R.string.scan_new_devices);
-        mTextViewStatus.setText("");
-    }
-
-    @SuppressLint("HandlerLeak")
-    private Handler mPrinterHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case PrinterConstants.Connect.SUCCESS:
-                    mPrinterConnected = true;
-                    mScanButton.setText(R.string.printer_disconnect);
-                    mTextViewStatus.setText(R.string.printer_connection_success);
-                    break;
-                case PrinterConstants.Connect.FAILED:
-                    mPrinterConnected = false;
-                    mScanButton.setText(R.string.scan_new_devices);
-                    Toast.makeText(BluetoothActivity.this, R.string.printer_connection_failed, Toast.LENGTH_SHORT).show();
-                    mTextViewStatus.setText(R.string.printer_connection_failed);
-                    break;
-                case PrinterConstants.Connect.CLOSED:
-                    mPrinterConnected = false;
-                    mScanButton.setText(R.string.scan_new_devices);
-                    Toast.makeText(BluetoothActivity.this, R.string.printer_connection_close, Toast.LENGTH_SHORT).show();
-                    mTextViewStatus.setText(R.string.printer_connection_close);
-                    break;
-                default:
-                    break;
-            }
-            hideProgressBar();
-        }
-    };
-
     private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -301,6 +244,7 @@ public class BluetoothActivity extends FragmentActivity {
                 }
                 switch (device.getBondState()) {
                     case BluetoothDevice.BOND_BONDING:
+                        PrintSharedPreferences.saveAddress(context, device.getAddress());
                         String stateBonding = String.format(context.getString(R.string.device_bonding), mDevice.getName(), mDevice.getAddress());
                         mTextViewStatus.setText(stateBonding);
                         hideProgressBar();
@@ -310,7 +254,6 @@ public class BluetoothActivity extends FragmentActivity {
                         mTextViewStatus.setText(stateBonded);
                         BluetoothActivity.this.unregisterReceiver(mBoundDeviceReceiver);
                         hideProgressBar();
-                        openPrinter();
                         break;
                     case BluetoothDevice.BOND_NONE:
                         Toast.makeText(BluetoothActivity.this,

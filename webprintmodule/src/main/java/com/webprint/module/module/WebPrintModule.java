@@ -9,8 +9,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.webprint.module.PrintActivity;
 import com.webprint.module.activity.BluetoothActivity;
+import com.webprint.module.activity.PrintActivity;
 import com.webprint.module.broadcast.PrintBluetoothModuleReceiver;
 import com.webprint.module.broadcast.RootBroadcastReceiver;
 
@@ -33,24 +33,35 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
         return "WebPrint";
     }
 
+    /**
+     * Starts activity when user can pair bluetooth device
+     */
     @ReactMethod
-    public void startPrintModule() {
+    public void startBluetoothPairing() {
         Intent intent = new Intent(getReactApplicationContext(), BluetoothActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         getReactApplicationContext().startActivity(intent);
     }
 
+    /**
+     * Closes current activity
+     */
     @ReactMethod
     public void onBackPressed() {
         getReactApplicationContext().sendBroadcast(new Intent(RootBroadcastReceiver.CLOSE_ACTIVITY_ACTION));
     }
 
+    /**
+     * Open activity which try to connect to printer and print @text
+     */
     @ReactMethod
     public void print(String text) {
-        Intent intent = new Intent(RootBroadcastReceiver.PRINT_TEXT_ACTION);
-        intent.putExtra(RootBroadcastReceiver.EXTRA_TEXT_PRINT, text);
-        getReactApplicationContext().sendBroadcast(intent);
+        Intent intent = new Intent(getReactApplicationContext(), PrintActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        intent.putExtra(PrintActivity.BUNDLE_PRINT_TEXT, text);
+        getReactApplicationContext().startActivity(intent);
     }
 
     public void sendFeedBack(String feedback) {

@@ -189,12 +189,12 @@ public class BluetoothOperation implements IPrinterOpertion {
 		if (!adapter.isEnabled()) {
 			Intent enableIntent = new Intent(
 					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			((Activity) mContext).startActivityForResult(enableIntent,
-					PrintActivity.ENABLE_BT);
+			//((Activity) mContext).startActivityForResult(enableIntent,
+					//PrintActivity.ENABLE_BT);
 		} else {
 			Intent intent = new Intent(mContext, BluetoothDeviceList.class);
-			((Activity) mContext).startActivityForResult(intent,
-					PrintActivity.CONNECT_DEVICE);
+			//((Activity) mContext).startActivityForResult(intent,
+					//PrintActivity.CONNECT_DEVICE);
 		}
 	}
 }
