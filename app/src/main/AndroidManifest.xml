@@ -39,6 +39,10 @@
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
+            android:name="com.webprint.module.activity.BluetoothActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
             android:name="com.webprint.module.IpAddressEdit"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>

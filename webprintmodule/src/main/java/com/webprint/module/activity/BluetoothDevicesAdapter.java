@@ -26,6 +26,7 @@ public class BluetoothDevicesAdapter extends RecyclerView.Adapter<BluetoothDevic
 
     public BluetoothDevicesAdapter(List<BluetoothDevice> devices) {
         mDevices = devices;
+        this.notifyDataSetChanged();
     }
 
     @NonNull
@@ -41,7 +42,7 @@ public class BluetoothDevicesAdapter extends RecyclerView.Adapter<BluetoothDevic
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         BluetoothDevice item = getItem(position);
         if (item != null) {
-            final String name = !TextUtils.isEmpty(item.getName()) ? item.getName() : "";
+            final String name = !TextUtils.isEmpty(item.getName()) ? item.getName() : holder.itemView.getResources().getString(R.string.no_name);
             final String address = !TextUtils.isEmpty(item.getAddress()) ? item.getAddress() : "";
             String state = "";
             switch (item.getBondState()) {
@@ -72,15 +73,23 @@ public class BluetoothDevicesAdapter extends RecyclerView.Adapter<BluetoothDevic
 
     public void addItems(BluetoothDevice... items) {
         mDevices.addAll(Arrays.asList(items));
+        this.notifyDataSetChanged();
     }
 
     public void addItems(List<BluetoothDevice> items) {
         mDevices.addAll(items);
+        this.notifyDataSetChanged();
     }
 
     public void setItems(List<BluetoothDevice> items) {
         mDevices.clear();
         mDevices.addAll(items);
+        this.notifyDataSetChanged();
+    }
+
+    public void clearData() {
+        mDevices.clear();
+        this.notifyDataSetChanged();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

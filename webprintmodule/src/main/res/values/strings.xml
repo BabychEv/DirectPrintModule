@@ -117,7 +117,10 @@
     <string name="text_common_point18">This is a line of plain text, 18-point font</string>
 
     <string name="scan_new_devices">Scan new devices</string>
+    <string name="no_name">No name</string>
     <string name="bond_none">Not paired</string>
     <string name="bond_bonding">Pairing</string>
     <string name="bond_bonded">Paired</string>
+    <string name="no_devices_found">No devices found</string>
+    <string name="bluetooth_not_supported">Device doesn\'t support Bluetooth</string>
 </resources>

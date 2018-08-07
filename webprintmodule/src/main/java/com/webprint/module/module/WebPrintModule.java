@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.webprint.module.PrintActivity;
+import com.webprint.module.activity.BluetoothActivity;
 import com.webprint.module.broadcast.PrintBluetoothModuleReceiver;
 import com.webprint.module.broadcast.RootBroadcastReceiver;
 
@@ -34,7 +35,7 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startPrintModule() {
-        Intent intent = new Intent(getReactApplicationContext(), PrintActivity.class);
+        Intent intent = new Intent(getReactApplicationContext(), BluetoothActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         getReactApplicationContext().startActivity(intent);
