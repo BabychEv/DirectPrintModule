@@ -123,4 +123,11 @@
     <string name="bond_bonded">Paired</string>
     <string name="no_devices_found">No devices found</string>
     <string name="bluetooth_not_supported">Device doesn\'t support Bluetooth</string>
+    <string name="device_bonding">Try bounding to %s %s</string>
+    <string name="device_bonded">Bonded to %s %s</string>
+    <string name="failed_bonded">Failed to bound</string>
+    <string name="printer_connection_close">Connection closed</string>
+    <string name="printer_connection_failed">Connection failed</string>
+    <string name="printer_connection_success">Connected to printer</string>
+    <string name="printer_disconnect">Disconnect</string>
 </resources>

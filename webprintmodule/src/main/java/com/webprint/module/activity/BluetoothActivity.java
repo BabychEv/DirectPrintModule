@@ -1,6 +1,7 @@
 package com.webprint.module.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -9,21 +10,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.print.sdk.PrinterConstants;
+import com.android.print.sdk.PrinterInstance;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.webprint.module.BluetoothDeviceList;
 import com.webprint.module.R;
 import com.webprint.module.utils.Utils;
 
+import java.lang.reflect.Method;
 import java.util.Set;
 
 public class BluetoothActivity extends FragmentActivity {
@@ -33,8 +41,12 @@ public class BluetoothActivity extends FragmentActivity {
     private RecyclerView mDevicesRecyclerView;
     private BluetoothDevicesAdapter mBluetoothDevicesAdapter;
     private Dialog mDialog;
+    private TextView mTextViewStatus;
 
     private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothDevice mDevice;
+    private PrinterInstance mPrinter;
+    private boolean mPrinterConnected;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,26 +57,32 @@ public class BluetoothActivity extends FragmentActivity {
         loadPairedDevices();
     }
 
+    @SuppressLint("CheckResult")
     private void initView() {
         mDialog = Utils.getProgressDialog(this);
         mScanButton = findViewById(R.id.btn_scan);
         mDevicesRecyclerView = findViewById(R.id.recycler_view);
+        mTextViewStatus = findViewById(R.id.text_view_status);
         mScanButton.setOnClickListener(click -> {
-            new RxPermissions(BluetoothActivity.this)
-                    .request(Manifest.permission.BLUETOOTH,
-                            Manifest.permission.BLUETOOTH_ADMIN,
-                            Manifest.permission.ACCESS_COARSE_LOCATION)
-                    .subscribe(granted -> {
-                        if (granted) {
-                            if(!mBluetoothAdapter.isEnabled()) {
-                                mBluetoothAdapter.enable();
+            if (mPrinterConnected) {
+                disconnectPrinter();
+            } else {
+                new RxPermissions(BluetoothActivity.this)
+                        .request(Manifest.permission.BLUETOOTH,
+                                Manifest.permission.BLUETOOTH_ADMIN,
+                                Manifest.permission.ACCESS_COARSE_LOCATION)
+                        .subscribe(granted -> {
+                            if (granted) {
+                                if (!mBluetoothAdapter.isEnabled()) {
+                                    mBluetoothAdapter.enable();
+                                }
+                                scanDevices();
+                            } else {
                             }
-                            scanDevices();
-                        } else {
-                        }
-                    }, error -> {
+                        }, error -> {
 
-                    });
+                        });
+            }
         });
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
@@ -74,11 +92,25 @@ public class BluetoothActivity extends FragmentActivity {
             finish();
             return;
         }
-        mBluetoothDevicesAdapter = new BluetoothDevicesAdapter();
+        mBluetoothDevicesAdapter = new BluetoothDevicesAdapter(mBluetoothDeviceClickListener);
         mDevicesRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         mDevicesRecyclerView.setAdapter(mBluetoothDevicesAdapter);
     }
 
+    private OnBluetoothDeviceClickListener mBluetoothDeviceClickListener = new OnBluetoothDeviceClickListener() {
+        @Override
+        public void onBluetoothClicked(BluetoothDevice device) {
+            mDevice = device;
+            showProgressBar();
+            if (mDevice.getBondState() == BluetoothDevice.BOND_NONE) {
+                pairOrRePairDevice(false, mDevice);
+            } else if (mDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
+                pairOrRePairDevice(true, mDevice);
+            }
+        }
+    };
+
+    @SuppressLint("CheckResult")
     private void loadPairedDevices() {
         new RxPermissions(BluetoothActivity.this)
                 .request(Manifest.permission.BLUETOOTH,
@@ -86,7 +118,7 @@ public class BluetoothActivity extends FragmentActivity {
                         Manifest.permission.ACCESS_COARSE_LOCATION)
                 .subscribe(granted -> {
                     if (granted) {
-                        if(!mBluetoothAdapter.isEnabled()) {
+                        if (!mBluetoothAdapter.isEnabled()) {
                             mBluetoothAdapter.enable();
                         }
                         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -100,7 +132,6 @@ public class BluetoothActivity extends FragmentActivity {
                 }, error -> {
 
                 });
-
     }
 
     private void scanDevices() {
@@ -148,6 +179,79 @@ public class BluetoothActivity extends FragmentActivity {
         }
     }
 
+    private boolean pairOrRePairDevice(boolean rePair, BluetoothDevice device) {
+        boolean success = false;
+        try {
+            mDevice = device;
+            IntentFilter boundFilter = new IntentFilter(
+                    BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+            this.registerReceiver(mBoundDeviceReceiver, boundFilter);
+
+            if (rePair) {
+                // cancel bond
+                Method removeBondMethod = BluetoothDevice.class
+                        .getMethod("removeBond");
+                success = (Boolean) removeBondMethod.invoke(device);
+            } else {
+                // Input password
+                // Method setPinMethod =
+                // BluetoothDevice.class.getMethod("setPin");
+                // setPinMethod.invoke(device, 1234);
+                // create bond
+                Method createBondMethod = BluetoothDevice.class
+                        .getMethod("createBond");
+                hideProgressBar();
+                success = (Boolean) createBondMethod.invoke(device);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            success = false;
+            hideProgressBar();
+        }
+        return success;
+    }
+
+    private void openPrinter() {
+        mPrinter = new PrinterInstance(this, mDevice, mPrinterHandler);
+        // default is gbk...
+        // mPrinter.setEncoding("gbk");
+        mPrinter.openConnection();
+    }
+
+    private void disconnectPrinter() {
+        mPrinter.closeConnection();
+        mScanButton.setText(R.string.scan_new_devices);
+    }
+
+    @SuppressLint("HandlerLeak")
+    private Handler mPrinterHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case PrinterConstants.Connect.SUCCESS:
+                    mPrinterConnected = true;
+                    mScanButton.setText(R.string.printer_disconnect);
+                    mTextViewStatus.setText(R.string.printer_connection_success);
+                    break;
+                case PrinterConstants.Connect.FAILED:
+                    mPrinterConnected = false;
+                    mScanButton.setText(R.string.scan_new_devices);
+                    Toast.makeText(BluetoothActivity.this, R.string.printer_connection_failed, Toast.LENGTH_SHORT).show();
+                    mTextViewStatus.setText(R.string.printer_connection_failed);
+                    break;
+                case PrinterConstants.Connect.CLOSED:
+                    mPrinterConnected = false;
+                    mScanButton.setText(R.string.scan_new_devices);
+                    Toast.makeText(BluetoothActivity.this, R.string.printer_connection_close, Toast.LENGTH_SHORT).show();
+                    mTextViewStatus.setText(R.string.printer_connection_close);
+                    break;
+                default:
+                    break;
+            }
+            hideProgressBar();
+        }
+    };
+
     private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -160,6 +264,40 @@ public class BluetoothActivity extends FragmentActivity {
                 if (mBluetoothDevicesAdapter.getItemCount() == 0) {
                     Toast.makeText(BluetoothActivity.this,
                             R.string.no_devices_found, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
+
+    private BroadcastReceiver mBoundDeviceReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (mDevice == null) return;
+            if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                BluetoothDevice device = intent
+                        .getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (!mDevice.equals(device)) {
+                    return;
+                }
+                switch (device.getBondState()) {
+                    case BluetoothDevice.BOND_BONDING:
+                        String stateBonding = String.format(context.getString(R.string.device_bonding), mDevice.getName(), mDevice.getAddress());
+                        mTextViewStatus.setText(stateBonding);
+                        hideProgressBar();
+                        break;
+                    case BluetoothDevice.BOND_BONDED:
+                        String stateBonded = String.format(context.getString(R.string.device_bonded), mDevice.getName(), mDevice.getAddress());
+                        mTextViewStatus.setText(stateBonded);
+                        BluetoothActivity.this.unregisterReceiver(mBoundDeviceReceiver);
+                        hideProgressBar();
+                        openPrinter();
+                        break;
+                    case BluetoothDevice.BOND_NONE:
+                        Toast.makeText(BluetoothActivity.this,
+                                R.string.failed_bonded, Toast.LENGTH_SHORT).show();
+                        pairOrRePairDevice(false, device);
+                    default:
+                        break;
                 }
             }
         }

@@ -19,14 +19,17 @@ import java.util.List;
 public class BluetoothDevicesAdapter extends RecyclerView.Adapter<BluetoothDevicesAdapter.ViewHolder> {
 
     private List<BluetoothDevice> mDevices;
+    private OnBluetoothDeviceClickListener mClickListener;
 
-    public BluetoothDevicesAdapter() {
+    public BluetoothDevicesAdapter(OnBluetoothDeviceClickListener listener) {
         mDevices = new ArrayList<>();
+        mClickListener = listener;
     }
 
-    public BluetoothDevicesAdapter(List<BluetoothDevice> devices) {
+    public BluetoothDevicesAdapter(List<BluetoothDevice> devices, OnBluetoothDeviceClickListener listener) {
         mDevices = devices;
         this.notifyDataSetChanged();
+        mClickListener = listener;
     }
 
     @NonNull
@@ -59,6 +62,9 @@ public class BluetoothDevicesAdapter extends RecyclerView.Adapter<BluetoothDevic
             holder.mTextViewName.setText(name);
             holder.mTextViewAddress.setText(address);
             holder.mButtonAction.setText(state);
+            holder.mButtonAction.setOnClickListener(click -> {
+                mClickListener.onBluetoothClicked(item);
+            });
         }
     }
 
