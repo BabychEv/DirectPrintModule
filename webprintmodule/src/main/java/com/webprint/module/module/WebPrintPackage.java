@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class WebPrintPrintPackage implements ReactPackage {
+public class WebPrintPackage implements ReactPackage {
 
     @Override public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();

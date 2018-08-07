@@ -115,4 +115,9 @@
     <string name="text_strike_point18">This is the line of strikethrough text, 18-point font</string>
     <string name="text_underLine_point18">This is the line of underlined text, 18-point font</string>
     <string name="text_common_point18">This is a line of plain text, 18-point font</string>
+
+    <string name="scan_new_devices">Scan new devices</string>
+    <string name="bond_none">Not paired</string>
+    <string name="bond_bonding">Pairing</string>
+    <string name="bond_bonded">Paired</string>
 </resources>
