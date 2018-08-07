@@ -12,7 +12,7 @@ public class PrintBluetoothModuleReceiver extends BroadcastReceiver {
     public static final String ACTION_SEND_PRINT_TEXT = "com.webprint.module.broadcast.PrintBluetoothModuleReceiver.ACTION_SEND_PRINT_TEXT";
 
     private static final String RESULT_DEVICES_PAIRED = "bluetooth_devices_paired";
-    private static final String RESULT_SEND_PRINT_TEXT = "bluetooth_devices_paired";
+    private static final String RESULT_SEND_PRINT_TEXT = "send_print_text";
 
     private WebPrintModule module;
 

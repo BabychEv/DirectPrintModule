@@ -118,6 +118,7 @@ public class PrintActivity extends FragmentActivity {
             hideProgressBar();
             sendBroadcast(new Intent(PrintBluetoothModuleReceiver.ACTION_SEND_PRINT_TEXT));
         } else {
+            hideProgressBar();
             Toast.makeText(PrintActivity.this, R.string.printer_not_ready, Toast.LENGTH_SHORT).show();
         }
     }
@@ -141,14 +142,18 @@ public class PrintActivity extends FragmentActivity {
                     print(mPrintText);
                     break;
                 case PrinterConstants.Connect.FAILED:
+                    hideProgressBar();
                     mPrinterConnected = false;
                     Toast.makeText(PrintActivity.this, R.string.printer_connection_failed, Toast.LENGTH_SHORT).show();
                     mTextViewStatus.setText(R.string.printer_connection_failed);
+                    finish();
                     break;
                 case PrinterConstants.Connect.CLOSED:
+                    hideProgressBar();
                     mPrinterConnected = false;
                     Toast.makeText(PrintActivity.this, R.string.printer_connection_close, Toast.LENGTH_SHORT).show();
                     mTextViewStatus.setText(R.string.printer_connection_close);
+                    finish();
                     break;
                 default:
                     break;
