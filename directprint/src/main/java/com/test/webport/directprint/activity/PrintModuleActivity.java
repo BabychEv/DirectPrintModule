@@ -24,6 +24,7 @@ import com.test.webport.directprint.broadcast.RootBroadcastReceiver;
 import com.test.webport.directprint.module.DirectPrintModule;
 
 public class PrintModuleActivity extends AppCompatActivity {
+    public static final String STOP_PRINT = "STOP_PRINT";
     private RootBroadcastReceiver receiver;
     private ProgressDialog dialog;
     private WebView webView;
@@ -44,6 +45,11 @@ public class PrintModuleActivity extends AppCompatActivity {
                 null);
         addWebViewClient();
         initReceiver();
+    }
+
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if(intent.getBooleanExtra(STOP_PRINT, false)) finish();
     }
 
     private void addWebViewClient() {
@@ -98,5 +104,12 @@ public class PrintModuleActivity extends AppCompatActivity {
         dialog.dismiss();
         unregisterReceiver(receiver);
         super.onDestroy();
+    }
+
+    public void clearPrintTask() {
+        Intent intent1 = new Intent(this, PrintModuleActivity.class);
+        intent1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent1.putExtra(STOP_PRINT, true);
+        startActivity(intent1);
     }
 }

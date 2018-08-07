@@ -17,7 +17,7 @@ public class RootBroadcastReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context, Intent intent) {
         if (intent.getAction() != null){
             if (intent.getAction().equals(CLOSE_ACTIVITY_ACTION)) {
-                activity.finishAndRemoveTask();
+                activity.clearPrintTask();
             }
         }
     }

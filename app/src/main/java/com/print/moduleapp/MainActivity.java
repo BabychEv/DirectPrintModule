@@ -27,6 +27,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 module.startPrint(text);
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override public void run() {
+                        module.onBackPressed();
+                    }
+                }, 10000);
             }
         });
 
@@ -38,12 +44,6 @@ public class MainActivity extends AppCompatActivity {
                 webPrintModule.startPrintModule();
             }
         });
-        /*Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override public void run() {
-                module.onBackPressed();
-            }
-        }, 10000);*/
     }
 
     private String text = "<html class=\"client-nojs\" lang=\"en\" dir=\"ltr\">\n" +
