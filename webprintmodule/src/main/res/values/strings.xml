@@ -135,4 +135,5 @@
     <string name="not_printed_data">No exists print data</string>
     <string name="printing">Printing...</string>
     <string name="not_paired_devices">Havn\'t paired devices</string>
+    <string name="device_disconnected">Device disconnected</string>
 </resources>

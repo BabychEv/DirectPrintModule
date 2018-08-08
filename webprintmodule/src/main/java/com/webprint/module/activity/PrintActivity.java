@@ -5,13 +5,17 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,14 +95,14 @@ public class PrintActivity extends FragmentActivity {
                         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
                         if (pairedDevices.size() > 0) {
                             for (BluetoothDevice device : pairedDevices) {
-                                if(device.getBondState() == BluetoothDevice.BOND_BONDED
-                                        && mAddress.equals(device.getAddress())){
+                                if (device.getBondState() == BluetoothDevice.BOND_BONDED
+                                        && mAddress.equals(device.getAddress())) {
                                     mDevice = device;
                                     openPrinter();
                                     break;
                                 }
                             }
-                            if(mDevice == null) {
+                            if (mDevice == null) {
                                 Toast.makeText(PrintActivity.this, R.string.no_devices_found, Toast.LENGTH_SHORT).show();
                             }
                         } else {
@@ -126,6 +130,9 @@ public class PrintActivity extends FragmentActivity {
     private void openPrinter() {
         showProgressBar();
         mPrinter = new PrinterInstance(this, mDevice, mPrinterHandler);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        this.registerReceiver(mDisconnectionDeviceReceiver, filter);
         // default is gbk...
         // mPrinter.setEncoding("gbk");
         mPrinter.openConnection();
@@ -161,12 +168,6 @@ public class PrintActivity extends FragmentActivity {
         }
     };
 
-    private void disconnectPrinter() {
-        if (mPrinter != null) {
-            mPrinter.closeConnection();
-        }
-    }
-
     public void showProgressBar() {
         if (mDialog != null) {
             mDialog.show();
@@ -190,7 +191,7 @@ public class PrintActivity extends FragmentActivity {
             mDialog.dismiss();
         }
         disconnectPrinter();
-        if(mCloseReceiver != null) {
+        if (mCloseReceiver != null) {
             try {
                 unregisterReceiver(mCloseReceiver);
             } catch (IllegalArgumentException e) {
@@ -198,5 +199,34 @@ public class PrintActivity extends FragmentActivity {
             }
         }
         super.onDestroy();
+    }
+
+    private BroadcastReceiver mDisconnectionDeviceReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+                if (mDevice != null && device != null && mPrinter != null && mPrinter.isConnected() && device.equals(mDevice)) {
+                    Toast.makeText(PrintActivity.this,
+                            R.string.device_disconnected, Toast.LENGTH_SHORT).show();
+                    disconnectPrinter();
+                    finish();
+                }
+            }
+        }
+    };
+
+    public void disconnectPrinter() {
+        if (mPrinter != null) {
+            mPrinter.closeConnection();
+            mPrinter = null;
+        }
+        if(mDisconnectionDeviceReceiver != null) {
+            try {
+                this.unregisterReceiver(mDisconnectionDeviceReceiver);
+            } catch (IllegalArgumentException e) {
+                //ignore
+            }
+        }
     }
 }
