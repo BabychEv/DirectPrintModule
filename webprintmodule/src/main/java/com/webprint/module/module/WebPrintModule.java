@@ -65,6 +65,7 @@ public class WebPrintModule extends ReactContextBaseJavaModule {
 
     public void sendResult(String event) {
         WritableMap params = Arguments.createMap();
+        params.putInt("some", 1);
         getReactApplicationContext()
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(event, params);
