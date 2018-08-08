@@ -92,7 +92,7 @@ public class PrintActivity extends FragmentActivity {
                         if (!mBluetoothAdapter.isEnabled()) {
                             Toast.makeText(PrintActivity.this, R.string.bluetooth_not_ready, Toast.LENGTH_SHORT).show();
                         }
-                        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+                        /*Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
                         if (pairedDevices.size() > 0) {
                             for (BluetoothDevice device : pairedDevices) {
                                 if (device.getBondState() == BluetoothDevice.BOND_BONDED
@@ -107,7 +107,14 @@ public class PrintActivity extends FragmentActivity {
                             }
                         } else {
                             Toast.makeText(PrintActivity.this, R.string.no_devices_found, Toast.LENGTH_SHORT).show();
+                        }*/
+                        mDevice = mBluetoothAdapter.getRemoteDevice(mAddress);
+                        if (mDevice == null || mDevice.getBondState() != BluetoothDevice.BOND_BONDED) {
+                            Toast.makeText(PrintActivity.this, R.string.no_devices_found, Toast.LENGTH_SHORT).show();
+                            finish();
+                            return;
                         }
+                        openPrinter();
                     } else {
                     }
                 }, error -> {
