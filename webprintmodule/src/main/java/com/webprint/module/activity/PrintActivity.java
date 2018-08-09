@@ -26,6 +26,7 @@ import com.webprint.module.R;
 import com.webprint.module.broadcast.PrintBluetoothModuleReceiver;
 import com.webprint.module.broadcast.RootBroadcastReceiver;
 import com.webprint.module.utils.PrintSharedPreferences;
+import com.webprint.module.utils.PrintUtils;
 import com.webprint.module.utils.Utils;
 
 import java.util.Set;
@@ -124,7 +125,9 @@ public class PrintActivity extends FragmentActivity {
 
     private void print(String text) {
         if (mPrinter != null && mPrinterConnected) {
+            mPrinter.init();
             mPrinter.printText(text);
+            mPrinter.setPrinter(PrinterConstants.Command.PRINT_AND_WAKE_PAPER_BY_LINE, 2);
             mTextViewStatus.setText(R.string.printing);
             hideProgressBar();
             sendBroadcast(new Intent(PrintBluetoothModuleReceiver.ACTION_SEND_PRINT_TEXT));
